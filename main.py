@@ -229,21 +229,20 @@ fetch_data_dict = {
 # mode : stock_prices, TAIEX, TPEx, margin_short, institutional_trades, month_revenue, per, financial_statements ,balance_sheet, cash_flow
 def update_stock_codes(table):
     df = fetch_stock_codes()
-    
     df = df.replace("None", None)
-    
+
     if df.empty:
-        return True
-    
-    # 建立 upsert
-    upsert_stmt = insert(table).values(df.to_dict(orient='records'))
-    update_cols = {c.name: c for c in table.columns if c.name not in ['id', 'stock_id', 'date']}
-    upsert_stmt = upsert_stmt.on_duplicate_key_update(**update_cols)
-    
-    # 執行
+        print("沒有抓到股票代碼，更新中止")
+        return False
+
+    # 先清空 table
     with engine.begin() as conn:
-        conn.execute(upsert_stmt)
-        
+        conn.execute(text("TRUNCATE TABLE stock_codes"))
+
+    # 全部重寫
+    df.to_sql("stock_codes", engine, if_exists="append", index=False)
+
+    print(f"股票代碼更新完成，共 {len(df)} 筆")
     return True
 
 

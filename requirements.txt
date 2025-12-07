@@ -1,6 +1,9 @@
 time
-twstock
+pymysql
+requests
 numpy
 pandas
+configparser
+FinMind
 datetime
 sqlalchemy
